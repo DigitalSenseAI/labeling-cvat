@@ -2,7 +2,7 @@ import json
 import base64
 from PIL import Image
 import io
-from model_handler import ModelHandler
+from patchcore.model_handler import ModelHandler
 import torch
 import os
 
@@ -28,16 +28,14 @@ def handler(context, event):
     try:
         data = event.body
 
-        threshold = float(data.get("threshold", 0.5))
-
         keyword = data.get("keyword", None)
-        print(f"Threshold: {threshold}, ckpt_Path: {keyword}")
+        print(f"ckpt_Path: {keyword}")
 
         buf = io.BytesIO(base64.b64decode(data["image"]))
         image = Image.open(buf)
         context.logger.info("Image loaded successfully")
 
-        result = context.user_data.model.infer(image, threshold, ckpt_path=keyword)
+        result = context.user_data.model.infer(image, ckpt_path=keyword)
 
         return context.Response(body=json.dumps(result),
             headers={},
@@ -52,4 +50,5 @@ def handler(context, event):
             content_type='application/json',
             status_code=500
         )
+
 

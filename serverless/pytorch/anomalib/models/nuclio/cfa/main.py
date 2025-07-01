@@ -2,7 +2,7 @@ import json
 import base64
 from PIL import Image
 import io
-from model_handler import ModelHandler
+from cfa.model_handler import ModelHandler
 import torch
 import os
 
@@ -26,15 +26,17 @@ def handler(context, event):
     context.logger.info("Run Uflow model")
 
     try:
+
         data = event.body
 
-        threshold = float(data.get("threshold", 0.5))
+        keyword = data.get("keyword", None)
+        print(f"ckpt_Path: {keyword}")
 
         buf = io.BytesIO(base64.b64decode(data["image"]))
         image = Image.open(buf)
         context.logger.info("Image loaded successfully")
 
-        result = context.user_data.model.infer(image, threshold)
+        result = context.user_data.model.infer(image, ckpt_path=keyword)
 
         return context.Response(body=json.dumps(result),
             headers={},

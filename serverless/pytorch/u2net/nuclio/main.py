@@ -23,15 +23,18 @@ def init_context(context):
     context.logger.info("Init context...100%")
 
 def handler(context, event):
-    context.logger.info("Run Uflow model")
+    context.logger.info("Run U2Net model")
 
     try:
         data = event.body
+
+        threshold = float(data.get("threshold", 0.5))
+
         buf = io.BytesIO(base64.b64decode(data["image"]))
         image = Image.open(buf)
         context.logger.info("Image loaded successfully")
 
-        result = context.user_data.model.infer(image)
+        result = context.user_data.model.infer(image, threshold)
 
         return context.Response(body=json.dumps(result),
             headers={},
@@ -46,25 +49,4 @@ def handler(context, event):
             content_type='application/json',
             status_code=500
         )
-
-    # data = event.body
-    # buf = io.BytesIO(base64.b64decode(data["image"]))
-    # image = Image.open(buf)
-
-    # mask = context.user_data.model.infer(image)
-
-    # print('So far so good! Inference was completed.')
-
-    # result = {
-    #         "confidence": None,
-    #         "label": 0,
-    #         "mask": mask.tolist(),
-    #         "type": "mask",
-    #     }
-
-    # return context.Response(body=json.dumps(result),
-    #     headers={},
-    #     content_type='application/json',
-    #     status_code=200
-    # )
 

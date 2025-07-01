@@ -29,13 +29,19 @@ class ModelHandler:
         # Setup device
         self.model = Uflow()
         self.engine = Engine()
-        self.ckpt_path = "model.ckpt"
+        self.ckpt_path = "uflow/model.ckpt"
 
     def resize_mask(self, mask, image):
         target_size = image.size
         return cv.resize(mask, target_size, interpolation=cv.INTER_NEAREST)
 
-    def infer(self, image, threshold=0.5):
+    def infer(self, image, ckpt_path=None):
+
+        if ckpt_path is not None:
+            self.ckpt_path = ckpt_path
+            print(f'Using checkpoint path: {self.ckpt_path}')
+        else:
+            print('No checkpoint path provided, using default.')
 
         images = [image]
 
