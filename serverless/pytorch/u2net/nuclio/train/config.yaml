@@ -1,0 +1,7 @@
+dataset:
+  dir_path: '/data/projects/anii-anomalias/datasets/sienz/train'
+output_model_dir: '/data/projects/anii-anomalias/try_u2net/saved_models/sienz_u2net_class3'
+train:
+  epoch_num: 300
+  save_frq_in_ep: 50
+  batch_size: 12
