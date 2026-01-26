@@ -1,0 +1,56 @@
+metadata:
+  name: glass
+  namespace: cvat
+  annotations:
+    name: GLASS
+    type: detector
+    spec: |
+      [
+        { "id": 0, "name": "anomaly", "type": "mask" }
+      ]
+
+spec:
+  description: GLASS (GPU-enabled with CUDA 12.8)
+  runtime: 'python:3.11'
+  handler: main:handler
+  eventTimeout: 3000s
+
+  build:
+    image: cvat.pth.unified:cuda12.8
+    baseImage: pytorch-unified:cuda12.8
+
+    directives:
+      preCopy:
+        - kind: ENV
+          value: DEBIAN_FRONTEND=noninteractive
+
+        - kind: WORKDIR
+          value: /opt/nuclio
+
+        # GLASS code already in base image at /opt/nuclio/glass/
+        # Handler files at /opt/nuclio/glass_main.py and glass_model_handler.py
+        - kind: RUN
+          value: ln -sf /opt/nuclio/glass_main.py /opt/nuclio/main.py && ln -sf /opt/nuclio/glass_model_handler.py /opt/nuclio/model_handler.py
+
+  resources:
+    limits:
+      nvidia.com/gpu: 1
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+
+  triggers:
+    myHttpTrigger:
+      numWorkers: 2
+      kind: 'http'
+      workerAvailabilityTimeoutMilliseconds: 300000
+      attributes:
+        maxRequestBodySize: 33554432 # 32MB
+        port: 32761
+
+  platform:
+    attributes:
+      restartPolicy:
+        name: always
+        maximumRetryCount: 3
+      mountMode: volume

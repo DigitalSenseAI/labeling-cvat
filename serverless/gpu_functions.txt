@@ -1,2 +1,4 @@
 serverless/pytorch/glass
-serverless/pytorch/facebookresearch/detectron2/retinanet_r101
+serverless/pytorch/u2net
+serverless/onnx/yolov8
+serverless/onnx/NYC-DOT/yolov11

@@ -1,0 +1,64 @@
+# Optimized Anomalib GPU image with runtime base (not devel)
+# Reduces image size by ~50% compared to devel
+FROM nvidia/cuda:12.8.0-runtime-ubuntu22.04
+
+# Set noninteractive frontend for apt
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update --fix-missing && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+    python3.11 \
+    python3.11-dev \
+    python3.11-distutils \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxrender1 \
+    libxext6 \
+    libgomp1 \
+    curl \
+    python3-pip \
+    git \
+    wget \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create python symlink (python3 already exists)
+RUN ln -sf /usr/bin/python3 /usr/bin/python
+
+# Upgrade pip
+RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# Set workdir to /app and copy everything (including anomalib folder)
+WORKDIR /app
+# Copy only the anomalib directory
+COPY anomalib /app/anomalib
+
+# Install PyTorch and torchvision (CUDA 12.8)
+COPY requirements-torch.txt /app/requirements-torch.txt
+RUN pip install --no-cache-dir -r /app/requirements-torch.txt && \
+    rm -f /app/requirements-torch.txt
+
+# Install Anomalib from local source
+RUN pip install --no-cache-dir -e /app/anomalib[full]
+
+RUN pip install --no-cache-dir msgpack nuclio_sdk
+
+# Clean up pip cache to reduce image size
+RUN pip cache purge && \
+    rm -rf /root/.cache/pip
+
+# Optimize Python bytecode
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Verify installation
+RUN python -c "import anomalib; print('Anomalib version:', anomalib.__version__)"
+
+# Labels for identification
+LABEL maintainer="DigitalSense AI" \
+      description="Optimized Anomalib CUDA 12.8 runtime image for CVAT serverless functions" \
+      version="2.0" \
+      base="runtime-optimized"

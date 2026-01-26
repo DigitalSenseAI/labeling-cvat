@@ -9,7 +9,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+
 ### Changed
+
+
+### Fixed
+
+=======
+
+## [2.0.0] - 2026-01-26
+
+### Added
+- Created API export file. [PR #23]
+- Added all possible anomalib models for detection. [PR #24]
+- Email configuration support through environment variables for SMTP authentication and user verification. [PR #25]
+- GPU acceleration support for all 11 Anomalib models with dedicated deployment script and configuration files. [PR #26]
+- GPU-enabled startup script for complete CVAT infrastructure deployment with GPU-accelerated Anomalib functions. [PR #26]
+- YOLOv8 segmentation model detection with ONNX runtime support for both CPU and GPU deployment. [PR #27]
+- CUDA 12.8 support for GLASS and U2Net models with dedicated GPU configurations and deployment scripts. [PR #28]
+- GPU-enabled startup script (startup-gpu-cuda12.8.sh) for CUDA 12.8 infrastructure deployment. [PR #28]
+- Set typing-extensions<4.9 for transT to be compatible with python 3.8 [PR #30]
+- Unified Dockerfile for PyTorch models to streamline deployment of GLASS, U2Net, and other PyTorch-based serverless functions. [PR #31]
+- Optimized GPU startup script (startup-gpu-cuda12.8-optimized.sh) for faster CUDA 12.8 infrastructure deployment. [PR #31]
+- Add YOLOv11 speed sign detection model with GPU support for CUDA 12.8. [PR #32]
+- Add YOLOv11 street light detection model with GPU support for CUDA 12.8. [PR #33]
+- Integrate ClearML into CVAT UI [PR #34]
+- Use checkpoint from interface in U2Net model [Pr #35]
+- Allow indicating checkpoint path from the interface for onnx models. [PR #36]
+
+### Changed
+- Updated files to utilize environment variables. [PR #22]
+- Enhanced docker-compose.override.yml and example.env to load email settings from environment variables with fallback defaults. [PR #25]
+- Enhanced Anomalib functions with GPU resource allocation and CUDA 12.8 support for improved inference performance. [PR #26]
+- Enhanced ModelHandler in GLASS and U2Net to support custom checkpoint paths in inference. [PR #28]
+- Unified Docker images for PyTorch models (GLASS, U2Net) to reduce redundancy and improve maintainability. [PR #31]
+- Optimized Anomalib GPU Docker image size for improved build times and resource efficiency. [PR #31]
+- Enhanced docker-compose.dev.yml for better integration with unified PyTorch serverless functions. [PR #31]
+- Updated GLASS and U2Net function configurations to use unified Docker base image with CUDA 12.8 support. [PR #31]
+
+### Fixed
+- Fixed Task creating changing cvat base docker image to version v2.35.0 [PR #21]
+- Fixed SITE_ID type conversion issue in email_settings.py that was causing container restart problems. [PR #25]
+- Fixed dependencies issues with CUDA 12.8 for YOLOv8 segmentation model detection with ONNX runtime. [PR #29]
+- Fix error creating cvat_server image due to incompatibilities between datumaro and cargo dependencies. [PR #36]
 
 =======
 

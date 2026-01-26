@@ -38,6 +38,7 @@ spec:
         - kind: RUN
           value: |-
             pip install \
+              "typing-extensions<4.9" \
               jsonpickle opencv-python-headless \
               torch==1.7.1+cpu torchvision==0.8.2+cpu \
               --extra-index-url https://download.pytorch.org/whl/cpu
@@ -52,7 +53,7 @@ spec:
       attributes:
         # Set value from the calculation of tracking of 100 objects at the same time on a 4k image
         maxRequestBodySize: 268435456 # 256MB
-        port: 32760
+        port: 32763
 
   platform:
     attributes:
