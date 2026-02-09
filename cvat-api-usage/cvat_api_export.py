@@ -99,10 +99,14 @@ def export_task_annotations(configuration, task_id, export_format, save_images, 
 
 
 # Configuration - update these values as needed
+# It's recommended to set these as environment variables instead of hardcoding them:
+# export CVAT_API_HOST="http://your-cvat-host:port/"
+# export CVAT_USERNAME="your-username"
+# export CVAT_PASSWORD="your-password"
 configuration = Configuration(
-    host="http://192.168.0.227:9090/",
-    username='ssilva',
-    password='sara2388',
+    host=os.getenv('CVAT_API_HOST', 'http://localhost:9090/'),
+    username=os.getenv('CVAT_USERNAME', ''),
+    password=os.getenv('CVAT_PASSWORD', ''),
 )
 
 # Export parameters

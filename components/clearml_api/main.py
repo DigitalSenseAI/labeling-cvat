@@ -536,11 +536,11 @@ async def health_check():
     try:
         # Make sure credentials are configured before checking health
         Task.set_credentials(
-            api_host="http://192.168.0.220:8008",
-            web_host="http://192.168.0.220:8080",
-            files_host="http://192.168.0.220:8081",
-            key="DFDQOY53OMXJUU2VV0G9",
-            secret="EoXFbXkqjqcBQSFp85In1K4tWafmiPFUFnP4dvVLj9Qp1moaF3"
+            api_host=os.getenv("CLEARML_API_HOST"),
+            web_host=os.getenv("CLEARML_WEB_HOST"),
+            files_host=os.getenv("CLEARML_FILES_HOST"),
+            key=os.getenv("CLEARML_API_KEY"),
+            secret=os.getenv("CLEARML_API_SECRET")
         )
 
         print(f"Attempting to connect to ClearML server")

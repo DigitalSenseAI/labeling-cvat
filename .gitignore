@@ -8,6 +8,9 @@
 /logs
 /profiles
 
+# ClearML configuration with credentials
+/components/clearml_api/clearml.conf
+
 # Ignore temporary files
 __pycache__
 *.pyc
