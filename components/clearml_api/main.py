@@ -71,15 +71,6 @@ async def get_all_projects():
         List of projects with their IDs and names
     """
     try:
-        # Ensure credentials are properly configured
-        Task.set_credentials(
-            api_host="http://192.168.0.220:8008",
-            web_host="http://192.168.0.220:8080",
-            files_host="http://192.168.0.220:8081",
-            key="DFDQOY53OMXJUU2VV0G9",
-            secret="EoXFbXkqjqcBQSFp85In1K4tWafmiPFUFnP4dvVLj9Qp1moaF3"
-        )
-
         # Get all projects from ClearML - using Task.get_projects()
         projects = Task.get_projects()
 
