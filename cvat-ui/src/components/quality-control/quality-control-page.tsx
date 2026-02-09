@@ -266,11 +266,31 @@ function QualityControlPage(): JSX.Element {
 
     const onDeleteFrames = useCallback((frameIDs: number[]): void => {
         if (state.gtJobInstance && instance) {
-            for (const frameID of frameIDs) {
-                state.gtJobInstance.frames.delete(frameID);
-            }
-
-            updateMeta();
+            Modal.confirm({
+                title: `Delete ${frameIDs.length} frame${frameIDs.length > 1 ? 's' : ''}?`,
+                content: (
+                    <>
+                        <Text>The selected frames will not be visible in navigation and exported datasets.</Text>
+                        <br />
+                        <Text>All annotations from these frames will be affected.</Text>
+                        <br />
+                        <Text strong>Frames can be restored later if needed.</Text>
+                    </>
+                ),
+                className: 'cvat-modal-confirm-delete-frames',
+                okText: 'Delete',
+                okType: 'danger',
+                okButtonProps: {
+                    type: 'primary',
+                    danger: true,
+                },
+                onOk: () => {
+                    for (const frameID of frameIDs) {
+                        state.gtJobInstance.frames.delete(frameID);
+                    }
+                    updateMeta();
+                },
+            });
         }
     }, [state.gtJobInstance]);
 
