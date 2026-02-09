@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove credentials from code [PR #46]
 
 ### Fixed
-- Forgot to remove Ips and credentials from a clearml file in PR#46 [PR #47]
+- Remove Ips and credentials from a clearml file [PR #47]
 
 =======
 
