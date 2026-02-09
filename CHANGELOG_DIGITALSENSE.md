@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add playback speed selector in the UI [PR #42]
 - Add the option to export tasks to a server path [PR #43]
 - Add SAM to deployed nuclio models [PR #44]
+- Add warnings when deleting projects, tasks, labels, etc. [PR #48]
 
 ### Changed
 - Change docker images labels for GLASS, U2Net and SAM [PR #44]
