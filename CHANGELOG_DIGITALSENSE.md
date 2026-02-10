@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Remove Ips and credentials from a clearml file [PR #47]
+- Fix setuptools version < 80 to address pkg_resources deprecation [PR #50]
 
 =======
 
