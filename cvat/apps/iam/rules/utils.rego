@@ -60,6 +60,8 @@ UPDATE_ORG := "update:organization"
 VIEW_STATUS := "view:status"
 VIEW_VALIDATION_LAYOUT := "view:validation_layout"
 UPDATE_VALIDATION_LAYOUT := "update:validation_layout"
+VIEW_VIDEO_SETTINGS := "view:video_settings"
+UPDATE_VIDEO_SETTINGS := "update:video_settings"
 DOWNLOAD_EXPORTED_FILE := "download:exported_file"
 
 

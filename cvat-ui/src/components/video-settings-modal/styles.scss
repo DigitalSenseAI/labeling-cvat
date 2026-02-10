@@ -1,0 +1,108 @@
+// Copyright (C) CVAT.ai Corporation
+//
+// SPDX-License-Identifier: MIT
+
+@import 'base';
+
+.cvat-video-settings-modal {
+    .ant-modal-body {
+        padding: 24px;
+    }
+
+    .cvat-video-settings-form-item {
+        margin-bottom: $grid-unit-size * 2;
+
+        .cvat-video-settings-field-label {
+            font-weight: 500;
+            margin-bottom: calc($grid-unit-size / 2);
+            display: flex;
+            align-items: center;
+            gap: $grid-unit-size;
+        }
+
+        .cvat-video-settings-field-value {
+            display: flex;
+            align-items: center;
+            gap: $grid-unit-size;
+            padding: $grid-unit-size $grid-unit-size * 1.5;
+            background: $background-color-1;
+            border-radius: $border-radius-base;
+            min-height: 40px;
+        }
+
+        .cvat-video-settings-field-input {
+            flex: 1;
+        }
+
+        .cvat-video-settings-edit-btn {
+            cursor: pointer;
+            color: $text-color-secondary;
+            font-size: 14px;
+            transition: color 0.2s;
+
+            &:hover {
+                color: $slider-color;
+            }
+        }
+    }
+
+    .cvat-video-settings-warning {
+        margin-top: $grid-unit-size * 2;
+        padding: $grid-unit-size * 1.5;
+        background: rgba(250, 173, 20, 0.1);
+        border: 1px solid #faad14;
+        border-radius: $border-radius-base;
+        color: #faad14;
+
+        .anticon {
+            margin-right: $grid-unit-size;
+        }
+    }
+
+    .cvat-video-settings-info {
+        margin-top: $grid-unit-size * 2;
+        padding: $grid-unit-size * 1.5;
+        background: rgba(24, 144, 255, 0.1);
+        border: 1px solid $slider-color;
+        border-radius: $border-radius-base;
+        color: $text-color;
+
+        .anticon {
+            margin-right: $grid-unit-size;
+            color: $slider-color;
+        }
+    }
+
+    .cvat-video-settings-active-users {
+        margin-top: $grid-unit-size * 2;
+        padding: $grid-unit-size * 1.5;
+        background: rgba(255, 65, 54, 0.1);
+        border: 1px solid $danger-icon-color;
+        border-radius: $border-radius-base;
+        color: $danger-icon-color;
+
+        .anticon {
+            margin-right: $grid-unit-size;
+        }
+
+        ul {
+            margin: $grid-unit-size 0 0 $grid-unit-size * 3;
+            padding: 0;
+        }
+    }
+}
+
+.cvat-video-settings-confirm-modal {
+    .ant-modal-confirm-content {
+        margin-top: $grid-unit-size * 2;
+    }
+
+    .cvat-video-settings-quality-warning {
+        margin-top: $grid-unit-size * 1.5;
+        padding: $grid-unit-size;
+        background: rgba(250, 173, 20, 0.1);
+        border: 1px solid #faad14;
+        border-radius: $border-radius-base;
+        font-size: 12px;
+    }
+}

@@ -158,7 +158,7 @@ allow if {
     input.scope in {
         utils.VIEW, utils.VIEW_ANNOTATIONS, utils.EXPORT_DATASET, utils.VIEW_METADATA,
         utils.VIEW_DATA, utils.EXPORT_ANNOTATIONS, utils.EXPORT_BACKUP,
-        utils.VIEW_VALIDATION_LAYOUT
+        utils.VIEW_VALIDATION_LAYOUT, utils.VIEW_VIDEO_SETTINGS
     }
     utils.is_sandbox
     is_task_staff
@@ -168,7 +168,7 @@ allow if {
     input.scope in {
         utils.VIEW, utils.VIEW_ANNOTATIONS, utils.EXPORT_DATASET, utils.VIEW_METADATA,
         utils.VIEW_DATA, utils.EXPORT_ANNOTATIONS, utils.EXPORT_BACKUP,
-        utils.VIEW_VALIDATION_LAYOUT
+        utils.VIEW_VALIDATION_LAYOUT, utils.VIEW_VIDEO_SETTINGS
     }
     input.auth.organization.id == input.resource.organization.id
     utils.has_perm(utils.USER)
@@ -179,7 +179,7 @@ allow if {
     input.scope in {
         utils.VIEW, utils.VIEW_ANNOTATIONS, utils.EXPORT_DATASET, utils.VIEW_METADATA,
         utils.VIEW_DATA, utils.EXPORT_ANNOTATIONS, utils.EXPORT_BACKUP,
-        utils.VIEW_VALIDATION_LAYOUT
+        utils.VIEW_VALIDATION_LAYOUT, utils.VIEW_VIDEO_SETTINGS
     }
     input.auth.organization.id == input.resource.organization.id
     organizations.has_perm(organizations.WORKER)
@@ -190,7 +190,7 @@ allow if {
     input.scope in {
         utils.UPDATE_DESC, utils.UPDATE_ANNOTATIONS, utils.DELETE_ANNOTATIONS,
         utils.UPLOAD_DATA, utils.UPDATE_METADATA, utils.IMPORT_ANNOTATIONS,
-        utils.UPDATE_VALIDATION_LAYOUT
+        utils.UPDATE_VALIDATION_LAYOUT, utils.UPDATE_VIDEO_SETTINGS
     }
     utils.is_sandbox
     is_task_staff
@@ -201,7 +201,7 @@ allow if {
     input.scope in {
         utils.UPDATE_DESC, utils.UPDATE_ANNOTATIONS, utils.DELETE_ANNOTATIONS,
         utils.UPLOAD_DATA, utils.UPDATE_METADATA, utils.IMPORT_ANNOTATIONS,
-        utils.UPDATE_VALIDATION_LAYOUT
+        utils.UPDATE_VALIDATION_LAYOUT, utils.UPDATE_VIDEO_SETTINGS
     }
     input.auth.organization.id == input.resource.organization.id
     utils.has_perm(utils.USER)
@@ -212,7 +212,7 @@ allow if {
     input.scope in {
         utils.UPDATE_DESC, utils.UPDATE_ANNOTATIONS, utils.DELETE_ANNOTATIONS,
         utils.UPLOAD_DATA, utils.UPDATE_METADATA, utils.IMPORT_ANNOTATIONS,
-        utils.UPDATE_VALIDATION_LAYOUT
+        utils.UPDATE_VALIDATION_LAYOUT, utils.UPDATE_VIDEO_SETTINGS
     }
     is_task_staff
     input.auth.organization.id == input.resource.organization.id

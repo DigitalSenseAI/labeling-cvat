@@ -1842,6 +1842,63 @@ class RemoteFileSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return instance.file if instance else instance
 
+
+class VideoSettingsSerializer(serializers.Serializer):
+    """
+    Serializer for updating video task settings.
+    These settings control how video chunks are generated.
+    """
+    use_zip_chunks = serializers.BooleanField(
+        required=False,
+        help_text="When true, video chunks will be represented as zip archives with decoded video frames"
+    )
+    use_cache = serializers.BooleanField(
+        required=False,
+        help_text="Enable or disable task data chunk caching"
+    )
+    image_quality = serializers.IntegerField(
+        min_value=5,
+        max_value=100,
+        required=False,
+        help_text="Image quality for compressed chunks (5-100)"
+    )
+    chunk_size = serializers.IntegerField(
+        min_value=1,
+        required=False,
+        help_text="Number of frames per chunk"
+    )
+
+    def validate(self, attrs):
+        if not attrs:
+            raise serializers.ValidationError("At least one setting must be provided")
+        return attrs
+
+
+class VideoSettingsReadSerializer(serializers.Serializer):
+    """
+    Serializer for reading current video task settings.
+    """
+    use_zip_chunks = serializers.BooleanField(
+        help_text="Whether video chunks are represented as zip archives"
+    )
+    use_cache = serializers.BooleanField(
+        help_text="Whether chunk caching is enabled"
+    )
+    image_quality = serializers.IntegerField(
+        help_text="Image quality for compressed chunks (5-100)"
+    )
+    chunk_size = serializers.IntegerField(
+        help_text="Number of frames per chunk"
+    )
+    original_chunk_quality = serializers.IntegerField(
+        help_text="Quality of original chunks (67 for video, 100 for images). Cannot be exceeded when changing image_quality."
+    )
+    active_jobs_users = serializers.ListField(
+        child=serializers.CharField(),
+        help_text="List of usernames currently working on jobs in this task (state = in progress)"
+    )
+
+
 class RqStatusSerializer(serializers.Serializer):
     state = serializers.ChoiceField(choices=[
         "Queued", "Started", "Finished", "Failed"])

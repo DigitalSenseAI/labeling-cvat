@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import Modal from 'antd/lib/modal';
 import Dropdown from 'antd/lib/dropdown';
@@ -15,6 +15,7 @@ import { importActions } from 'actions/import-actions';
 import { modelsActions } from 'actions/models-actions';
 import { mergeConsensusJobsAsync } from 'actions/consensus-actions';
 import { deleteTaskAsync, switchMoveTaskModalVisible } from 'actions/tasks-actions';
+import { VideoSettingsModal } from 'components/video-settings-modal';
 import TaskActionsItems from './actions-menu-items';
 
 interface Props {
@@ -25,6 +26,7 @@ interface Props {
 function TaskActionsComponent(props: Props): JSX.Element {
     const { taskInstance, triggerElement } = props;
     const dispatch = useDispatch();
+    const [videoSettingsModalVisible, setVideoSettingsModalVisible] = useState(false);
 
     const pluginActions = usePlugins((state: CombinedState) => state.plugins.components.taskActions.items, props);
     const {
@@ -81,6 +83,10 @@ function TaskActionsComponent(props: Props): JSX.Element {
         }
     }, [taskInstance.id]);
 
+    const onOpenVideoSettings = useCallback(() => {
+        setVideoSettingsModalVisible(true);
+    }, []);
+
     const onDeleteTask = useCallback(() => {
         Modal.confirm({
             title: `The task ${taskInstance.id} will be deleted`,
@@ -97,35 +103,49 @@ function TaskActionsComponent(props: Props): JSX.Element {
         });
     }, [taskInstance]);
 
+    // Check if task is a video task (interpolation mode)
+    const isVideoTask = taskInstance.mode === 'interpolation';
+
     return (
-        <Dropdown
-            destroyPopupOnHide
-            trigger={['click']}
-            menu={{
-                selectable: false,
-                className: 'cvat-actions-menu',
-                items: TaskActionsItems({
-                    taskID: taskInstance.id,
-                    isAutomaticAnnotationEnabled: (
-                        activeInference &&
-                        ![RQStatus.FAILED, RQStatus.FINISHED].includes(activeInference.status)
-                    ),
-                    isConsensusEnabled: taskInstance.consensusEnabled,
-                    isMergingConsensusEnabled: mergingConsensus[`task_${taskInstance.id}`],
-                    pluginActions,
-                    onMergeConsensusJobs: taskInstance.consensusEnabled ? onMergeConsensusJobs : null,
-                    onOpenBugTracker: taskInstance.bugTracker ? onOpenBugTracker : null,
-                    onUploadAnnotations,
-                    onExportDataset,
-                    onBackupTask,
-                    onRunAutoAnnotation,
-                    onMoveTaskToProject: taskInstance.projectId === null ? onMoveTaskToProject : null,
-                    onDeleteTask,
-                }, props),
-            }}
-        >
-            {triggerElement}
-        </Dropdown>
+        <>
+            <Dropdown
+                destroyPopupOnHide
+                trigger={['click']}
+                menu={{
+                    selectable: false,
+                    className: 'cvat-actions-menu',
+                    items: TaskActionsItems({
+                        taskID: taskInstance.id,
+                        isAutomaticAnnotationEnabled: (
+                            activeInference &&
+                            ![RQStatus.FAILED, RQStatus.FINISHED].includes(activeInference.status)
+                        ),
+                        isConsensusEnabled: taskInstance.consensusEnabled,
+                        isMergingConsensusEnabled: mergingConsensus[`task_${taskInstance.id}`],
+                        isVideoTask,
+                        pluginActions,
+                        onMergeConsensusJobs: taskInstance.consensusEnabled ? onMergeConsensusJobs : null,
+                        onOpenBugTracker: taskInstance.bugTracker ? onOpenBugTracker : null,
+                        onUploadAnnotations,
+                        onExportDataset,
+                        onBackupTask,
+                        onRunAutoAnnotation,
+                        onMoveTaskToProject: taskInstance.projectId === null ? onMoveTaskToProject : null,
+                        onOpenVideoSettings: isVideoTask ? onOpenVideoSettings : null,
+                        onDeleteTask,
+                    }, props),
+                }}
+            >
+                {triggerElement}
+            </Dropdown>
+            {isVideoTask && (
+                <VideoSettingsModal
+                    visible={videoSettingsModalVisible}
+                    taskInstance={taskInstance}
+                    onClose={() => setVideoSettingsModalVisible(false)}
+                />
+            )}
+        </>
     );
 }
 

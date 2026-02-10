@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LoadingOutlined } from '@ant-design/icons';
+import { LoadingOutlined, SettingOutlined } from '@ant-design/icons';
 import { MenuProps } from 'antd/lib/menu';
 import { usePlugins } from 'utils/hooks';
 
@@ -13,6 +13,7 @@ interface MenuItemsData {
     isAutomaticAnnotationEnabled: boolean;
     isConsensusEnabled: boolean;
     isMergingConsensusEnabled: boolean;
+    isVideoTask: boolean;
     pluginActions: ReturnType<typeof usePlugins>;
     onMergeConsensusJobs: (() => void) | null;
     onOpenBugTracker: (() => void) | null;
@@ -21,6 +22,7 @@ interface MenuItemsData {
     onBackupTask: () => void;
     onRunAutoAnnotation: (() => void) | null;
     onMoveTaskToProject: (() => void) | null;
+    onOpenVideoSettings: (() => void) | null;
     onDeleteTask: () => void;
 }
 
@@ -31,6 +33,7 @@ export default function TaskActionsItems(menuItemsData: MenuItemsData, taskMenuP
         isAutomaticAnnotationEnabled,
         isConsensusEnabled,
         isMergingConsensusEnabled,
+        isVideoTask,
         onMergeConsensusJobs,
         onUploadAnnotations,
         onExportDataset,
@@ -38,6 +41,7 @@ export default function TaskActionsItems(menuItemsData: MenuItemsData, taskMenuP
         onBackupTask,
         onRunAutoAnnotation,
         onMoveTaskToProject,
+        onOpenVideoSettings,
         onDeleteTask,
     } = menuItemsData;
 
@@ -101,6 +105,15 @@ export default function TaskActionsItems(menuItemsData: MenuItemsData, taskMenuP
             disabled: isMergingConsensusEnabled,
             itemIcon: isMergingConsensusEnabled ? <LoadingOutlined /> : undefined,
         }, 70]);
+    }
+
+    if (onOpenVideoSettings) {
+        menuItems.push([{
+            key: 'video_settings',
+            onClick: onOpenVideoSettings,
+            icon: <SettingOutlined />,
+            label: 'Video settings',
+        }, 75]);
     }
 
     if (onMoveTaskToProject) {

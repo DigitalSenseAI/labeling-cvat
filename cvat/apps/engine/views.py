@@ -161,6 +161,8 @@ from cvat.apps.engine.serializers import (
     TaskValidationLayoutWriteSerializer,
     TaskWriteSerializer,
     UserSerializer,
+    VideoSettingsReadSerializer,
+    VideoSettingsSerializer,
 )
 from cvat.apps.engine.types import ExtendedRequest
 from cvat.apps.engine.utils import (
@@ -1689,6 +1691,113 @@ class TaskViewSet(viewsets.GenericViewSet, mixins.ListModelMixin,
             data_quality='compressed',
         )
         return data_getter()
+
+    @extend_schema(
+        methods=["GET"],
+        summary="Get current video settings for a task",
+        description=textwrap.dedent("""
+            Returns current video settings and information about users
+            currently working on jobs in this task.
+            Only available for video tasks (mode = interpolation).
+        """),
+        responses={
+            '200': OpenApiResponse(VideoSettingsReadSerializer),
+            '400': OpenApiResponse(description='Task is not a video task'),
+        })
+    @extend_schema(
+        methods=["PATCH"],
+        summary="Update video settings for a task",
+        description=textwrap.dedent("""
+            Update video chunk settings and trigger chunk regeneration.
+            Only available for video tasks (mode = interpolation).
+
+            Note: The task will be temporarily unavailable during chunk regeneration.
+            Cannot be changed if other users are actively working on jobs
+            (jobs in 'in progress' state assigned to other users).
+        """),
+        request=VideoSettingsSerializer,
+        responses={
+            '200': OpenApiResponse(RqIdSerializer, description='Chunk regeneration started'),
+            '400': OpenApiResponse(description='Invalid request or task is not a video task'),
+            '409': OpenApiResponse(description='Cannot update: other users are working on this task'),
+        })
+    @action(detail=True, methods=["GET", "PATCH"], url_path='video-settings')
+    def video_settings(self, request: ExtendedRequest, pk: int):
+        from cvat.apps.engine import video_settings as video_settings_module
+
+        db_task = self.get_object()
+
+        # Only video tasks support video settings
+        if db_task.mode != 'interpolation':
+            return Response(
+                {'detail': 'Video settings are only available for video tasks'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not db_task.data:
+            return Response(
+                {'detail': 'Task has no data'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if request.method == "GET":
+            # Get current settings
+            db_data = db_task.data
+
+            # Determine original chunk quality
+            original_quality = 100 if db_data.original_chunk_type == models.DataChoice.IMAGESET else 67
+
+            # Find users actively working on jobs (state = in progress, not current user)
+            active_jobs = models.Job.objects.filter(
+                segment__task=db_task,
+                state=models.StateChoice.IN_PROGRESS
+            ).exclude(assignee=request.user).select_related('assignee')
+
+            active_users = list(set(
+                job.assignee.username for job in active_jobs if job.assignee
+            ))
+
+            response_data = {
+                'use_zip_chunks': db_data.compressed_chunk_type == models.DataChoice.IMAGESET,
+                'use_cache': db_data.storage_method == models.StorageMethodChoice.CACHE,
+                'image_quality': db_data.image_quality,
+                'chunk_size': db_data.chunk_size,
+                'original_chunk_quality': original_quality,
+                'active_jobs_users': active_users,
+            }
+
+            return Response(VideoSettingsReadSerializer(response_data).data)
+
+        elif request.method == "PATCH":
+            serializer = VideoSettingsSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            # Check if other users are actively working on jobs
+            active_jobs = models.Job.objects.filter(
+                segment__task=db_task,
+                state=models.StateChoice.IN_PROGRESS
+            ).exclude(assignee=request.user).select_related('assignee')
+
+            if active_jobs.exists():
+                active_users = list(set(
+                    job.assignee.username for job in active_jobs if job.assignee
+                ))
+                return Response(
+                    {
+                        'detail': 'Cannot update video settings: other users are working on this task',
+                        'active_users': active_users
+                    },
+                    status=status.HTTP_409_CONFLICT
+                )
+
+            # Start the regeneration job
+            rq_id = video_settings_module.regenerate_chunks(
+                db_task=db_task,
+                settings_data=serializer.validated_data,
+                request=request,
+            )
+
+            return Response(RqIdSerializer({'rq_id': rq_id}).data)
 
     @extend_schema(
         methods=["GET"],

@@ -442,6 +442,8 @@ class TaskPermission(OpenPolicyAgentPermission, DownloadExportedExtension):
         EXPORT_BACKUP = 'export:backup'
         VIEW_VALIDATION_LAYOUT = 'view:validation_layout'
         UPDATE_VALIDATION_LAYOUT = 'update:validation_layout'
+        VIEW_VIDEO_SETTINGS = 'view:video_settings'
+        UPDATE_VIDEO_SETTINGS = 'update:video_settings'
 
     @classmethod
     def create(cls, request: ExtendedRequest, view: ViewSet, obj: Task | None, iam_context: dict[str, Any]) -> list[OpenPolicyAgentPermission]:
@@ -554,6 +556,8 @@ class TaskPermission(OpenPolicyAgentPermission, DownloadExportedExtension):
             ('preview', 'GET'): Scopes.VIEW,
             ('validation_layout', 'GET'): Scopes.VIEW_VALIDATION_LAYOUT,
             ('validation_layout', 'PATCH'): Scopes.UPDATE_VALIDATION_LAYOUT,
+            ('video_settings', 'GET'): Scopes.VIEW_VIDEO_SETTINGS,
+            ('video_settings', 'PATCH'): Scopes.UPDATE_VIDEO_SETTINGS,
             ('download_dataset', 'GET'): DownloadExportedExtension.Scopes.DOWNLOAD_EXPORTED_FILE,
             ('download_backup', 'GET'): DownloadExportedExtension.Scopes.DOWNLOAD_EXPORTED_FILE,
             # FUTURE-TODO: deprecated API

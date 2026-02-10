@@ -805,6 +805,67 @@ async function mergeConsensusJobs(id: number, instanceType: string): Promise<voi
     });
 }
 
+export interface VideoSettings {
+    useZipChunks: boolean;
+    useCache: boolean;
+    imageQuality: number;
+    chunkSize: number;
+    originalChunkQuality: number;
+    activeJobsUsers: string[];
+}
+
+export interface VideoSettingsUpdate {
+    useZipChunks?: boolean;
+    useCache?: boolean;
+    imageQuality?: number;
+    chunkSize?: number;
+}
+
+async function getVideoSettings(taskId: number): Promise<VideoSettings> {
+    const { backendAPI } = config;
+    try {
+        const response = await Axios.get(`${backendAPI}/tasks/${taskId}/video-settings`);
+        return {
+            useZipChunks: response.data.use_zip_chunks,
+            useCache: response.data.use_cache,
+            imageQuality: response.data.image_quality,
+            chunkSize: response.data.chunk_size,
+            originalChunkQuality: response.data.original_chunk_quality,
+            activeJobsUsers: response.data.active_jobs_users,
+        };
+    } catch (errorData) {
+        throw generateError(errorData);
+    }
+}
+
+async function updateVideoSettings(
+    taskId: number,
+    settings: VideoSettingsUpdate,
+): Promise<string> {
+    const { backendAPI } = config;
+    const body: Record<string, unknown> = {};
+
+    if (settings.useZipChunks !== undefined) {
+        body.use_zip_chunks = settings.useZipChunks;
+    }
+    if (settings.useCache !== undefined) {
+        body.use_cache = settings.useCache;
+    }
+    if (settings.imageQuality !== undefined) {
+        body.image_quality = settings.imageQuality;
+    }
+    if (settings.chunkSize !== undefined) {
+        body.chunk_size = settings.chunkSize;
+    }
+
+    try {
+        const response = await Axios.patch(`${backendAPI}/tasks/${taskId}/video-settings`, body);
+        return response.data.rq_id;
+    } catch (errorData) {
+        throw generateError(errorData);
+    }
+}
+
 async function getLabels(filter: {
     job_id?: number,
     task_id?: number,
@@ -2436,6 +2497,8 @@ export default Object.freeze({
         restore: restoreTask,
         validationLayout: validationLayout('tasks'),
         mergeConsensusJobs,
+        getVideoSettings,
+        updateVideoSettings,
     }),
 
     labels: Object.freeze({
