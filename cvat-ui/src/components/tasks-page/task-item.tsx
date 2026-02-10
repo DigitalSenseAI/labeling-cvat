@@ -9,11 +9,12 @@ import { withRouter } from 'react-router-dom';
 import Text from 'antd/lib/typography/Text';
 import { Row, Col } from 'antd/lib/grid';
 import Button from 'antd/lib/button';
-import { MoreOutlined } from '@ant-design/icons';
+import { MoreOutlined, TagsOutlined } from '@ant-design/icons';
 import Progress from 'antd/lib/progress';
 import Badge from 'antd/lib/badge';
+import Tooltip from 'antd/lib/tooltip';
 import moment from 'moment';
-import { Task, RQStatus, Request } from 'cvat-core-wrapper';
+import { Task, RQStatus, Request, getCore } from 'cvat-core-wrapper';
 import Preview from 'components/common/preview';
 import { ActiveInference, PluginComponent } from 'reducers';
 import StatusMessage from 'components/requests-page/request-status';
@@ -36,6 +37,8 @@ interface State {
         message: string;
         progress: number;
     } | null;
+    hasAnnotations: boolean | null;
+    annotationsLoading: boolean;
 }
 
 class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteComponentProps, State> {
@@ -51,12 +54,43 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                 message: 'Request current progress',
                 progress: 0,
             },
+            hasAnnotations: null,
+            annotationsLoading: false,
         };
     }
 
     public componentDidMount(): void {
         const { taskInstance, updateTaskInState, activeRequest } = this.props;
         const { importingState } = this.state;
+
+        // Check for annotations by fetching job states (lightweight API call)
+        if (taskInstance.size > 0 && !this.#isUnmounted) {
+            this.setState({ annotationsLoading: true });
+
+            // Fetch jobs for this task to check their states
+            const cvat = getCore();
+            cvat.jobs.get({ taskID: taskInstance.id })
+                .then((jobs: any[]) => {
+                    if (!this.#isUnmounted) {
+                        // If any job is not in 'new' state, task has annotations
+                        const hasAnnots = jobs.some((job: any) => job.state !== 'new');
+
+                        this.setState({
+                            hasAnnotations: hasAnnots,
+                            annotationsLoading: false
+                        });
+                    }
+                })
+                .catch(() => {
+                    if (!this.#isUnmounted) {
+                        // On error, fallback to false
+                        this.setState({
+                            hasAnnotations: false,
+                            annotationsLoading: false
+                        });
+                    }
+                });
+        }
 
         if (importingState !== null && activeRequest !== null) {
             if (!this.#isUnmounted) {
@@ -124,6 +158,7 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
     private renderDescription(): JSX.Element {
         // Task info
         const { taskInstance } = this.props;
+        const { hasAnnotations, annotationsLoading } = this.state;
         const { id } = taskInstance;
         const owner = taskInstance.owner ? taskInstance.owner.username : null;
         const updated = moment(taskInstance.updatedDate).fromNow();
@@ -136,6 +171,17 @@ class TaskItemComponent extends React.PureComponent<TaskItemProps & RouteCompone
                     <Text strong className='cvat-item-task-name'>
                         {taskInstance.name}
                     </Text>
+                    {!annotationsLoading && hasAnnotations !== null && (
+                        <Tooltip title={hasAnnotations ? 'Has annotations' : 'No annotations'}>
+                            <TagsOutlined
+                                style={{
+                                    marginLeft: 8,
+                                    color: hasAnnotations ? '#52c41a' : '#d9d9d9',
+                                    fontSize: 16
+                                }}
+                            />
+                        </Tooltip>
+                    )}
                 </Text>
                 <br />
                 {owner && (
