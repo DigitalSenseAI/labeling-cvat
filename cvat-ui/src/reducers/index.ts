@@ -912,6 +912,7 @@ export interface ShapesSettingsState {
     showProjections: boolean;
     showGroundTruth: boolean;
     orientationVisibility: OrientationVisibility;
+    showConfidence: boolean;
 }
 
 export interface SettingsState {

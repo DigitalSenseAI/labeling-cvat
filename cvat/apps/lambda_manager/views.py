@@ -752,6 +752,17 @@ class DetectionResultConverter:
             if attr["name"] in label["attributes"]
         ]
 
+        # Add confidence from model response if available
+        if "confidence" in anno and anno["confidence"] is not None:
+            confidence_attr_names = ["confidence", "score", "conf", "probability", "prob"]
+            for attr_name in confidence_attr_names:
+                if attr_name in label["attributes"]:
+                    attrs.append({
+                        "spec_id": label["attributes"][attr_name],
+                        "value": str(anno["confidence"])
+                    })
+                    break
+
         if anno["type"].lower() == "tag":
             return {
                 "frame": frame,

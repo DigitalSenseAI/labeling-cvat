@@ -559,11 +559,16 @@ class JobAnnotation:
             field_id='id',
         )
 
+        valid_tags = []
         for db_tag in db_tags:
+            # Skip tags with deleted/missing labels
+            if db_tag.label_id not in self.db_attributes:
+                continue
             self._extend_attributes(db_tag.attributes,
                 self.db_attributes[db_tag.label_id]["all"].values())
+            valid_tags.append(db_tag)
 
-        serializer = serializers.LabeledImageSerializerFromDB(db_tags, many=True)
+        serializer = serializers.LabeledImageSerializerFromDB(valid_tags, many=True)
         self.ir_data.tags = serializer.data
 
     def _init_shapes_from_db(self):
@@ -602,6 +607,9 @@ class JobAnnotation:
         shapes = {}
         elements = {}
         for db_shape in db_shapes:
+            # Skip shapes with deleted/missing labels
+            if db_shape.label_id not in self.db_attributes:
+                continue
             self._extend_attributes(db_shape.attributes,
                 self.db_attributes[db_shape.label_id]["all"].values())
             if db_shape['type'] == str(models.ShapeType.SKELETON):
@@ -688,6 +696,11 @@ class JobAnnotation:
             # A result table can consist many equal rows for track/shape attributes
             # We need filter unique attributes manually
             db_track["attributes"] = list(set(db_track["attributes"]))
+
+            # Skip tracks with deleted/missing labels
+            if db_track.label_id not in self.db_attributes:
+                continue
+
             self._extend_attributes(db_track.attributes,
                 self.db_attributes[db_track.label_id]["immutable"].values())
 

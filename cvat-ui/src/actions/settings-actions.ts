@@ -58,6 +58,7 @@ export enum SettingsActionTypes {
     DISABLE_IMAGE_FILTER = 'DISABLE_IMAGE_FILTER',
     RESET_IMAGE_FILTERS = 'RESET_IMAGE_FILTERS',
     CHANGE_SHAPES_ORIENTATION_VISIBILITY = 'CHANGE_SHAPES_ORIENTATION_VISIBILITY',
+    CHANGE_SHOW_CONFIDENCE = 'CHANGE_SHOW_CONFIDENCE',
 }
 
 export function changeShapesOpacity(opacity: number): AnyAction {
@@ -129,6 +130,15 @@ export function changeOrientationVisibility(orientationVisibility: Partial<Orien
         type: SettingsActionTypes.CHANGE_SHAPES_ORIENTATION_VISIBILITY,
         payload: {
             orientationVisibility,
+        },
+    };
+}
+
+export function changeShowConfidence(showConfidence: boolean): AnyAction {
+    return {
+        type: SettingsActionTypes.CHANGE_SHOW_CONFIDENCE,
+        payload: {
+            showConfidence,
         },
     };
 }

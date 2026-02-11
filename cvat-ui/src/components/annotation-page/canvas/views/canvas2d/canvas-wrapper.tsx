@@ -87,6 +87,7 @@ interface StateToProps {
     outlineColor: string;
     showBitmap: boolean;
     showProjections: boolean;
+    showConfidence: boolean;
     grid: boolean;
     gridSize: number;
     gridColor: GridColor;
@@ -198,6 +199,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
             },
             shapes: {
                 opacity, colorBy, selectedOpacity, outlined, outlineColor, showBitmap, showProjections, showGroundTruth,
+                showConfidence,
             },
             imageFilters,
         },
@@ -223,6 +225,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
         outlineColor,
         showBitmap,
         showProjections,
+        showConfidence,
         grid,
         gridSize,
         gridColor,
@@ -371,6 +374,7 @@ class CanvasWrapperComponent extends React.PureComponent<Props> {
             showObjectsTextAlways,
             workspace,
             showProjections,
+            showConfidence,
             selectedOpacity,
             opacity,
             smoothImage,
@@ -409,6 +413,7 @@ class CanvasWrapperComponent extends React.PureComponent<Props> {
             textPosition,
             textContent,
             resetZoom,
+            showConfidence,
         });
 
         this.initialSetup();
@@ -446,6 +451,7 @@ class CanvasWrapperComponent extends React.PureComponent<Props> {
             automaticBordering,
             intelligentPolygonCrop,
             showProjections,
+            showConfidence,
             colorBy,
             onFetchAnnotation,
             showGroundTruth,
@@ -470,7 +476,8 @@ class CanvasWrapperComponent extends React.PureComponent<Props> {
             prevProps.outlineColor !== outlineColor ||
             prevProps.outlined !== outlined ||
             prevProps.showGroundTruth !== showGroundTruth ||
-            prevProps.resetZoom !== resetZoom
+            prevProps.resetZoom !== resetZoom ||
+            prevProps.showConfidence !== showConfidence
         ) {
             canvasInstance.configure({
                 undefinedAttrValue: config.UNDEFINED_ATTRIBUTE_VALUE,
@@ -489,6 +496,7 @@ class CanvasWrapperComponent extends React.PureComponent<Props> {
                 textContent,
                 showConflicts: showGroundTruth,
                 resetZoom,
+                showConfidence,
             });
         }
 

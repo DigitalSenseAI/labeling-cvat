@@ -1805,7 +1805,8 @@ export class CanvasViewImpl implements CanvasView, Listener {
                 }
             }
 
-            const recreateText = configuration.textContent !== this.configuration.textContent;
+            const recreateText = configuration.textContent !== this.configuration.textContent ||
+                configuration.showConfidence !== this.configuration.showConfidence;
             const updateTextPosition = configuration.displayAllText !== this.configuration.displayAllText ||
                 configuration.textFontSize !== this.configuration.textFontSize ||
                 configuration.textPosition !== this.configuration.textPosition ||
@@ -1856,10 +1857,6 @@ export class CanvasViewImpl implements CanvasView, Listener {
             this.interactionHandler.configurate(this.configuration);
             this.sliceHandler.configurate(this.configuration);
             this.transformCanvas();
-
-            // remove if exist and not enabled
-            // this.setupObjects([]);
-            // this.setupObjects(model.objects);
         } else if (reason === UpdateReasons.BITMAP) {
             const { imageBitmap } = model;
             if (imageBitmap) {
@@ -3095,10 +3092,33 @@ export class CanvasViewImpl implements CanvasView, Listener {
         const withSource = content.includes('source');
         const withDescriptions = content.includes('descriptions');
         const withDimensions = content.includes('dimensions');
+        const { showConfidence } = this.configuration;
         const textFontSize = this.configuration.textFontSize || 12;
         const {
             label, clientID, attributes, source, descriptions,
         } = state;
+
+        // Extract confidence from attributes if present
+        let confidence = null;
+        if (showConfidence && attributes && Object.keys(attributes).length > 0) {
+            // Look for confidence attribute by name in label attributes
+            const confidenceAttrNames = Object.fromEntries(
+                state.label.attributes.map((attr: any) => [attr.id, attr.name.toLowerCase()])
+            );
+
+            for (const [attrID, attrName] of Object.entries(confidenceAttrNames)) {
+                if (['confidence', 'score', 'conf', 'probability', 'prob'].includes(attrName as string)) {
+                    const attrValue = attributes[attrID];
+                    if (attrValue !== undefined && attrValue !== null && attrValue !== '' && attrValue !== '0') {
+                        const value = parseFloat(attrValue);
+                        if (!isNaN(value) && value > 0) {
+                            confidence = value;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
         const attrNames = Object.fromEntries(state.label.attributes.map((attr) => [attr.id, attr.name]));
         if (state.shapeType === 'skeleton') {
@@ -3121,6 +3141,16 @@ export class CanvasViewImpl implements CanvasView, Listener {
                 `${withSource ? `(${source})` : ''}`).style({
                     'text-transform': 'uppercase',
                 });
+
+                if (confidence !== null && showConfidence) {
+                    block
+                        .tspan(`Conf: ${(confidence * 100).toFixed(1)}%`)
+                        .attr({
+                            dy: '1.25em',
+                            x: 0,
+                        })
+                        .addClass('cvat_canvas_text_confidence');
+                }
 
                 if (withDimensions && ['rectangle', 'ellipse'].includes(state.shapeType)) {
                     let width = state.points[2] - state.points[0];
@@ -3151,7 +3181,21 @@ export class CanvasViewImpl implements CanvasView, Listener {
                     });
                 }
                 if (withAttr) {
-                    Object.keys(attributes).forEach((attrID: string, idx: number) => {
+                    // Get confidence attribute IDs to exclude them from normal attribute display
+                    const confidenceAttrIDs = new Set<string>();
+                    const confidenceAttrNames = Object.fromEntries(
+                        state.label.attributes.map((attr: any) => [attr.id, attr.name.toLowerCase()])
+                    );
+                    for (const [attrID, attrName] of Object.entries(confidenceAttrNames)) {
+                        if (['confidence', 'score', 'conf', 'probability', 'prob'].includes(attrName as string)) {
+                            confidenceAttrIDs.add(attrID);
+                        }
+                    }
+
+                    // Filter out confidence attributes from normal attribute display
+                    const filteredAttrIDs = Object.keys(attributes).filter((attrID) => !confidenceAttrIDs.has(attrID));
+
+                    filteredAttrIDs.forEach((attrID: string, idx: number) => {
                         const values = `${attributes[attrID] === undefinedAttrValue ?
                             '' : attributes[attrID]}`.split('\n');
                         const parent = block.tspan(`${attrNames[attrID]}: `)
