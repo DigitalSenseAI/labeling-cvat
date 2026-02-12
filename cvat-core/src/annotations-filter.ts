@@ -80,6 +80,7 @@ interface ConvertedObjectData {
     type: ObjectType;
     shape: ShapeType;
     occluded: boolean;
+    confidence: number | null;
 }
 
 export default class AnnotationsFilter {
@@ -106,6 +107,19 @@ export default class AnnotationsFilter {
                 return acc;
             }, {} as Record<string, string | number | boolean>);
 
+            // Extract confidence from attributes
+            let confidence: number | null = null;
+            for (const attr of state.label.attributes) {
+                const attrName = attr.name.toLowerCase();
+                if (['confidence', 'score', 'conf', 'probability', 'prob'].includes(attrName)) {
+                    const value = parseFloat(state.attributes[attr.id]);
+                    if (!isNaN(value)) {
+                        confidence = value;
+                        break;
+                    }
+                }
+            }
+
             return {
                 width,
                 height,
@@ -118,6 +132,7 @@ export default class AnnotationsFilter {
                 type: state.objectType,
                 shape: state.shapeType,
                 occluded: state.occluded,
+                confidence,
             };
         });
 

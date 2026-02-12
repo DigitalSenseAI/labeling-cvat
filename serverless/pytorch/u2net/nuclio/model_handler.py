@@ -135,10 +135,21 @@ class ModelHandler:
 
             box = (x_min, y_min, x_max, y_max)
 
+            # Calculate confidence as the mean prediction value only for pixels within the mask
+            # Use the original prediction (before thresholding) for confidence calculation
+            # Resize predict_np to match resized_mask dimensions
+            predict_resized = cv.resize(predict_np, (original_image.shape[1], original_image.shape[0]), interpolation=cv.INTER_LINEAR)
+            mask_region = predict_resized[y_min:y_max+1, x_min:x_max+1]
+            binary_region = resized_mask[y_min:y_max+1, x_min:x_max+1]
+
+            # Calculate confidence only for pixels that are part of the mask (> 0)
+            mask_pixels = mask_region[binary_region > 0]
+            confidence_score = float(np.mean(mask_pixels)) if mask_pixels.size > 0 else 0.0
+
             cvat_mask = to_cvat_mask(box, resized_mask)
 
             results.append({
-                "confidence": None,
+                "confidence": confidence_score,
                 "label": "anomaly",
                 "points": contour.ravel().tolist(),
                 "mask": cvat_mask,

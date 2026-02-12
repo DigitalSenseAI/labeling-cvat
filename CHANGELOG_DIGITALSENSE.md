@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add warnings when deleting projects, tasks, labels, etc. [PR #48]
 - Add automatic annotations indicator for tasks and jobs in list views [PR #49]
 - Add labels navigation menu in annotation page for quick frame navigation [PR #49]
+- Add confidence score visualization for model predictions with toggle control in appearance panel [PR #52]
+- Add confidence calculation for U2Net and GLASS segmentation models based on mask prediction values [PR #52]
 
 ### Changed
 - Change docker images labels for GLASS, U2Net and SAM [PR #44]

@@ -97,6 +97,7 @@ export interface Configuration {
     outlinedBorders?: string | false;
     resetZoom?: boolean;
     hideEditedObject?: boolean;
+    showConfidence?: boolean;
 }
 
 export interface BrushTool {
@@ -418,6 +419,7 @@ export class CanvasModelImpl extends MasterImpl implements CanvasModel {
                 textContent: consts.DEFAULT_SHAPE_TEXT_CONTENT,
                 undefinedAttrValue: consts.DEFAULT_UNDEFINED_ATTR_VALUE,
                 hideEditedObject: false,
+                showConfidence: false,
             },
             imageBitmap: false,
             image: null,
@@ -991,6 +993,10 @@ export class CanvasModelImpl extends MasterImpl implements CanvasModel {
 
         if (typeof configuration.showConflicts === 'boolean') {
             this.data.configuration.showConflicts = configuration.showConflicts;
+        }
+
+        if (typeof configuration.showConfidence === 'boolean') {
+            this.data.configuration.showConfidence = configuration.showConfidence;
         }
 
         if (typeof configuration.CSSImageFilter === 'string') {
