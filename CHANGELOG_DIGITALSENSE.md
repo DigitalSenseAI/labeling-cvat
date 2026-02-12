@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change docker images labels for GLASS, U2Net and SAM [PR #44]
 - Enable continuous tracking with play button [PR #45]
 - Remove credentials from code [PR #46]
+- Set number of workers to 1 to reduce GPU usage for Anomalib, GLASS and U2Net models [PR #51]
 
 ### Fixed
 - Remove Ips and credentials from a clearml file [PR #47]
