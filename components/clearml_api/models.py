@@ -107,3 +107,38 @@ class ProjectBase(BaseModel):
 
 class ProjectsResponse(BaseModel):
     projects: List[ProjectBase]
+
+
+class DatasetBase(BaseModel):
+    id: str
+    name: str
+    project: Optional[str] = None
+    parent: Optional[str] = None
+    tags: Optional[List[str]] = None
+    version: Optional[str] = None
+    description: Optional[str] = None
+    size: Optional[int] = None
+    files_count: Optional[int] = None
+    uri: Optional[str] = None
+    created: Optional[str] = None
+
+
+class DatasetsResponse(BaseModel):
+    datasets: List[DatasetBase]
+
+
+class DatasetVersion(BaseModel):
+    id: str
+    version: str
+    description: Optional[str] = None
+    size: Optional[int] = None
+    files_count: Optional[int] = None
+    uri: Optional[str] = None
+    created: Optional[str] = None
+    changeset: Optional[Dict[str, Any]] = None
+
+
+class DatasetDetailResponse(BaseModel):
+    dataset: DatasetBase
+    versions: Optional[List[DatasetVersion]] = None
+    metadata: Optional[Dict[str, Any]] = None
