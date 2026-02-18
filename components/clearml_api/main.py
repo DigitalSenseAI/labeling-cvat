@@ -1,4 +1,5 @@
 import os
+import json
 import clearml
 from fastapi import FastAPI, HTTPException, Depends, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,30 +12,40 @@ from models import (
 )
 from config import settings
 
-# ClearML credentials from environment variables
-print("Configuring ClearML with environment credentials")
+# ClearML configuration from clearml.conf file
+print("Configuring ClearML from clearml.conf file")
 try:
-    # Set ClearML credentials from environment variables
-    api_host = os.getenv("CLEARML_API_HOST")
-    web_host = os.getenv("CLEARML_WEB_HOST")
-    files_host = os.getenv("CLEARML_FILES_HOST")
-    api_key = os.getenv("CLEARML_API_KEY")
-    api_secret = os.getenv("CLEARML_API_SECRET")
+    # Load configuration from clearml.conf file
+    config_file_path = os.path.join(os.path.dirname(__file__), 'clearml.conf')
 
-    if not all([api_host, web_host, files_host, api_key, api_secret]):
-        raise ValueError("Missing ClearML environment variables. Please set CLEARML_API_HOST, CLEARML_WEB_HOST, CLEARML_FILES_HOST, CLEARML_API_KEY, and CLEARML_API_SECRET")
+    if os.path.exists(config_file_path):
+        with open(config_file_path, 'r') as f:
+            config = json.load(f)
 
-    Task.set_credentials(
-        api_host=api_host,
-        web_host=web_host,
-        files_host=files_host,
-        key=api_key,
-        secret=api_secret
-    )
-    print("ClearML credentials configured successfully")
+        api_config = config.get('api', {})
+        api_host = api_config.get('host')
+        web_host = api_config.get('web_host')
+        files_host = api_config.get('files_host')
+        api_key = api_config.get('key')
+        api_secret = api_config.get('secret')
+
+        if all([api_host, web_host, files_host, api_key, api_secret]):
+            Task.set_credentials(
+                api_host=api_host,
+                web_host=web_host,
+                files_host=files_host,
+                key=api_key,
+                secret=api_secret
+            )
+            print(f"ClearML credentials configured successfully from {config_file_path}")
+            print(f"API Host: {api_host}")
+        else:
+            print("Warning: Some ClearML credentials are missing in clearml.conf")
+    else:
+        print(f"Warning: clearml.conf file not found at {config_file_path}")
+        print("ClearML will try to use default configuration")
 except Exception as e:
     print(f"Error configuring ClearML: {e}")
-    # Don't fail startup, but log the error
     import traceback
     traceback.print_exc()
 

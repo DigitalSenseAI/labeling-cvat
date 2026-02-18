@@ -426,6 +426,13 @@ services:
       - DEBUG=false
       - APP_NAME=CVAT ClearML API
       - API_VERSION=v1
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.clearml-api.loadbalancer.server.port: "8000"
+      traefik.http.routers.clearml-api.rule: Host(`${CVAT_HOST:-localhost}`) && PathPrefix(`/clearml-api`)
+      traefik.http.routers.clearml-api.entrypoints: web
+      traefik.http.middlewares.clearml-strip.stripprefix.prefixes: "/clearml-api"
+      traefik.http.routers.clearml-api.middlewares: clearml-strip
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

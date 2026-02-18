@@ -83,15 +83,14 @@ function ClearMLPageComponent(props: Props): JSX.Element {
         setConnectionStatus('none');
 
         try {
-            // The ClearML API is available at port 8500 as specified in the text
-            const response = await fetch(`${getClearMLApiUrl()}/debug.ping`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
+            // Use the /health endpoint to check connection
+            const response = await fetch(`${getClearMLApiUrl()}/health`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
             });
             if (response.ok) {
                 const data = await response.json();
-                if (data.data) {
+                if (data.status === 'ok') {
                     notification.success({
                         message: 'ClearML Connection Successful',
                         description: 'Successfully connected to the ClearML server.',
@@ -127,7 +126,7 @@ function ClearMLPageComponent(props: Props): JSX.Element {
         return { 'Authorization': `Basic ${encoded}` };
     };
 
-    const getClearMLApiUrl = () => process.env.REACT_APP_CLEARML_API_URL || 'http://localhost:8008';
+    const getClearMLApiUrl = () => process.env.REACT_APP_CLEARML_API_URL || '/clearml-api';
 
     const fetchClearMLProjects = async (): Promise<void> => {
         if (connectionStatus !== 'success' && !isConnecting) {
@@ -141,20 +140,16 @@ function ClearMLPageComponent(props: Props): JSX.Element {
         setIsLoadingProjects(true);
 
         try {
-            const response = await fetch(`${getClearMLApiUrl()}/projects.get_all`, {
-                method: 'POST',
+            const response = await fetch(`${getClearMLApiUrl()}/projects`, {
+                method: 'GET',
                 headers: {
                 'Content-Type': 'application/json',
-                ...getAuthHeader() // Add this line
-                },
-                body: JSON.stringify({
-                    "order_by": ["name"],
-                    "search_text": ""
-                })
+                ...getAuthHeader()
+                }
             });
             if (response.ok) {
                 const data = await response.json();
-                setProjects(data.data?.projects || []);
+                setProjects(data.projects || []);
 
                 notification.success({
                     message: 'Projects Loaded',
@@ -183,17 +178,13 @@ function ClearMLPageComponent(props: Props): JSX.Element {
         setSelectedArtifact(null); // Clear artifact selection
 
         try {
-            const response = await fetch(`${getClearMLApiUrl()}/tasks.get_all`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                project: [projectName],
-                only_fields: ["id", "name", "status", "type", "last_update"] // Optional: limits data size
-            })
+            const response = await fetch(`${getClearMLApiUrl()}/projects/${encodeURIComponent(projectName)}/tasks`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
         });
             if (response.ok) {
                 const data = await response.json();
-                setProjectTasks(data.data?.tasks || []);
+                setProjectTasks(data.tasks || []);
 
                 notification.success({
                     message: 'Tasks Loaded',
