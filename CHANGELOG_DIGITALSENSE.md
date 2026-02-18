@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Set number of workers to 1 to reduce GPU usage for Anomalib, GLASS and U2Net models [PR #51]
 
 ### Fixed
+- Fix ClearML frontend connection by correcting API endpoints and adding Traefik proxy configuration [PR #53]
 - Remove Ips and credentials from a clearml file [PR #47]
 - Fix setuptools version < 80 to address pkg_resources deprecation [PR #50]
 
