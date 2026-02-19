@@ -45,6 +45,16 @@ interface Artifact {
     tags?: string[];
 }
 
+interface Dataset {
+    id: string;
+    name: string;
+    project: string;
+    created: string;
+    user: string;
+    tags?: string[];
+    version?: string;
+}
+
 interface Props {
     // Add any props if needed
 }
@@ -61,6 +71,8 @@ function ClearMLPageComponent(props: Props): JSX.Element {
     const [taskArtifacts, setTaskArtifacts] = useState<Artifact[]>([]);
     const [isLoadingArtifacts, setIsLoadingArtifacts] = useState(false);
     const [selectedArtifact, setSelectedArtifact] = useState<string | null>(null);
+    const [datasets, setDatasets] = useState<Dataset[]>([]);
+    const [isLoadingDatasets, setIsLoadingDatasets] = useState(false);
 
     // ClearML Web UI URL helper functions
     const getClearMLBaseUrl = () => process.env.REACT_APP_CLEARML_WEB_URL || 'http://localhost:8083';
@@ -71,6 +83,10 @@ function ClearMLPageComponent(props: Props): JSX.Element {
 
     const getClearMLTaskUrl = (taskId: string) => {
         return `${getClearMLBaseUrl()}/projects/*/experiments/${encodeURIComponent(taskId)}`;
+    };
+
+    const getClearMLDatasetUrl = (datasetId: string) => {
+        return `${getClearMLBaseUrl()}/datasets/simple/${encodeURIComponent(datasetId)}/general`;
     };
 
     // Auto-connect on component mount
@@ -100,6 +116,7 @@ function ClearMLPageComponent(props: Props): JSX.Element {
 
                     // Automatically fetch projects after successful connection
                     await fetchClearMLProjects();
+                    await fetchClearMLDatasets();
                 } else {
                     throw new Error('ClearML service reported unhealthy status');
                 }
@@ -129,14 +146,6 @@ function ClearMLPageComponent(props: Props): JSX.Element {
     const getClearMLApiUrl = () => process.env.REACT_APP_CLEARML_API_URL || '/clearml-api';
 
     const fetchClearMLProjects = async (): Promise<void> => {
-        if (connectionStatus !== 'success' && !isConnecting) {
-            notification.info({
-                message: 'Connection Required',
-                description: 'Please connect to ClearML first before fetching projects.',
-            });
-            return;
-        }
-
         setIsLoadingProjects(true);
 
         try {
@@ -169,7 +178,39 @@ function ClearMLPageComponent(props: Props): JSX.Element {
             setIsLoadingProjects(false);
         }
     };
+    const fetchClearMLDatasets = async (): Promise<void> => {
+        setIsLoadingDatasets(true);
 
+        try {
+            const response = await fetch(`${getClearMLApiUrl()}/datasets`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setDatasets(data.datasets || []);
+
+                notification.success({
+                    message: 'Datasets Loaded',
+                    description: `Successfully loaded ${data.datasets?.length || 0} ClearML datasets.`,
+                });
+            } else {
+                const errorText = await response.text();
+                throw new Error(`Failed to fetch datasets: ${response.status} ${response.statusText} - ${errorText}`);
+            }
+        } catch (error) {
+            notification.error({
+                message: 'Failed to Load Datasets',
+                description: `Error loading ClearML datasets: ${error instanceof Error ? error.message : String(error)}`,
+            });
+            setDatasets([]);
+        } finally {
+            setIsLoadingDatasets(false);
+        }
+    };
     const fetchProjectTasks = async (projectName: string): Promise<void> => {
         setIsLoadingTasks(true);
         setSelectedProject(projectName);
@@ -374,6 +415,122 @@ function ClearMLPageComponent(props: Props): JSX.Element {
                                             <div style={{ textAlign: 'center', padding: '20px' }}>
                                                 <Text type="secondary">
                                                     {isLoadingProjects ? 'Loading projects...' : 'No projects found'}
+                                                </Text>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </Col>
+                        </Row>
+
+                        {/* Datasets Section */}
+                        <Row style={{ marginBottom: '24px' }}>
+                            <Col span={24}>
+                                <div style={{
+                                    background: '#fff',
+                                    border: '1px solid #d9d9d9',
+                                    borderRadius: '6px',
+                                    padding: '16px'
+                                }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '16px'
+                                    }}>
+                                        <Title level={4} style={{ margin: 0 }}>
+                                            <FileOutlined style={{ marginRight: 8, color: '#52c41a' }} />
+                                            Datasets
+                                        </Title>
+                                        <Button
+                                            onClick={fetchClearMLDatasets}
+                                            loading={isLoadingDatasets}
+                                            icon={<SyncOutlined />}
+                                            size="small"
+                                        >
+                                            Refresh
+                                        </Button>
+                                    </div>
+
+                                    <div style={{ marginBottom: '16px' }}>
+                                        {datasets.length > 0 ? (
+                                            <div>
+                                                <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '8px' }}>
+                                                    Found {datasets.length} dataset{datasets.length !== 1 ? 's' : ''}
+                                                </Text>
+                                                <div style={{
+                                                    maxHeight: '300px',
+                                                    overflowY: 'auto',
+                                                    border: '1px solid #f0f0f0',
+                                                    borderRadius: '4px'
+                                                }}>
+                                                    {datasets.map((dataset: Dataset) => (
+                                                        <div
+                                                            key={dataset.id}
+                                                            style={{
+                                                                padding: '12px 16px',
+                                                                borderBottom: '1px solid #f0f0f0',
+                                                                background: 'transparent',
+                                                                transition: 'background-color 0.3s'
+                                                            }}
+                                                            onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                                                                e.currentTarget.style.backgroundColor = '#f5f5f5';
+                                                            }}
+                                                            onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                                                                e.currentTarget.style.backgroundColor = 'transparent';
+                                                            }}
+                                                        >
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                                <div style={{ flex: 1 }}>
+                                                                    <Text strong style={{ color: '#262626' }}>
+                                                                        {dataset.name}
+                                                                    </Text>
+                                                                    {dataset.project && (
+                                                                        <div style={{ marginTop: '4px' }}>
+                                                                            <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                                                Project: {dataset.project}
+                                                                            </Text>
+                                                                        </div>
+                                                                    )}
+                                                                    <div style={{ marginTop: '4px' }}>
+                                                                        <Text type="secondary" style={{ fontSize: '11px' }}>
+                                                                            Created: {new Date(dataset.created).toLocaleDateString()}
+                                                                        </Text>
+                                                                        {dataset.version && (
+                                                                            <Text type="secondary" style={{ fontSize: '11px', marginLeft: '12px' }}>
+                                                                                Version: {dataset.version}
+                                                                            </Text>
+                                                                        )}
+                                                                    </div>
+                                                                    {dataset.tags && dataset.tags.length > 0 && (
+                                                                        <div style={{ marginTop: '4px' }}>
+                                                                            <Text type="secondary" style={{ fontSize: '11px' }}>
+                                                                                Tags: {dataset.tags.join(', ')}
+                                                                            </Text>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <Button
+                                                                    size="small"
+                                                                    icon={<LinkOutlined />}
+                                                                    onClick={(e: React.MouseEvent) => {
+                                                                        e.stopPropagation();
+                                                                        window.open(getClearMLDatasetUrl(dataset.id), '_blank');
+                                                                    }}
+                                                                    title="View dataset in ClearML"
+                                                                    style={{ marginLeft: '8px' }}
+                                                                >
+                                                                    View in ClearML
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div style={{ textAlign: 'center', padding: '20px' }}>
+                                                <Text type="secondary">
+                                                    {isLoadingDatasets ? 'Loading datasets...' : 'No datasets found'}
                                                 </Text>
                                             </div>
                                         )}

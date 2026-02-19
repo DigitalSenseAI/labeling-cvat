@@ -8,6 +8,11 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
 const CopyPlugin = require('copy-webpack-plugin');
+const dotenv = require('dotenv');
+
+// Load environment variables from root .env file
+const envPath = path.resolve(__dirname, '..', '.env');
+const envVars = dotenv.config({ path: envPath }).parsed || {};
 
 module.exports = (env) => {
     const defaultAppConfig = path.join(__dirname, 'src/config.tsx');
@@ -177,7 +182,16 @@ module.exports = (env) => {
                 inject: 'body',
             }),
             new Dotenv({
+                path: path.resolve(__dirname, '..', '.env'),
                 systemvars: true,
+            }),
+            new webpack.DefinePlugin({
+                'process.env.REACT_APP_CLEARML_WEB_URL': JSON.stringify(
+                    process.env.REACT_APP_CLEARML_WEB_URL || envVars.REACT_APP_CLEARML_WEB_URL
+                ),
+                'process.env.REACT_APP_CLEARML_API_URL': JSON.stringify(
+                    process.env.REACT_APP_CLEARML_API_URL || envVars.REACT_APP_CLEARML_API_URL
+                ),
             }),
             new CopyPlugin({
                 patterns: [

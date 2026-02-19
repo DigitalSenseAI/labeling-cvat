@@ -20,17 +20,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add labels navigation menu in annotation page for quick frame navigation [PR #49]
 - Add confidence score visualization for model predictions with toggle control in appearance panel [PR #52]
 - Add confidence calculation for U2Net and GLASS segmentation models based on mask prediction values [PR #52]
+- Add Datasets section in ClearML page UI to display available datasets with project, version, and tags information [PR #54]
 
 ### Changed
 - Change docker images labels for GLASS, U2Net and SAM [PR #44]
 - Enable continuous tracking with play button [PR #45]
 - Remove credentials from code [PR #46]
 - Set number of workers to 1 to reduce GPU usage for Anomalib, GLASS and U2Net models [PR #51]
+- Configure ClearML environment variables in webpack, Dockerfile.ui, and docker-compose.yml to inject at build time and use backend proxy for API connections [PR #54]
 
 ### Fixed
 - Fix ClearML frontend connection by correcting API endpoints and adding Traefik proxy configuration [PR #53]
 - Remove Ips and credentials from a clearml file [PR #47]
 - Fix setuptools version < 80 to address pkg_resources deprecation [PR #50]
+- Fix ClearML projects and datasets not loading automatically on first page visit [PR #54]
 
 =======
 

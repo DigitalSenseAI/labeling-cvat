@@ -248,6 +248,12 @@ services:
     container_name: cvat_ui
     image: cvat/ui:${CVAT_VERSION:-dev}
     restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+      args:
+        REACT_APP_CLEARML_WEB_URL: ${REACT_APP_CLEARML_WEB_URL}
+        REACT_APP_CLEARML_API_URL: ${REACT_APP_CLEARML_API_URL}
     depends_on:
       - cvat_server
     labels:
