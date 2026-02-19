@@ -536,18 +536,10 @@ async def health_check():
         Status of the API and connection to ClearML
     """
     try:
-        # Make sure credentials are configured before checking health
-        Task.set_credentials(
-            api_host=os.getenv("CLEARML_API_HOST"),
-            web_host=os.getenv("CLEARML_WEB_HOST"),
-            files_host=os.getenv("CLEARML_FILES_HOST"),
-            key=os.getenv("CLEARML_API_KEY"),
-            secret=os.getenv("CLEARML_API_SECRET")
-        )
-
         print(f"Attempting to connect to ClearML server")
 
         # Try to get the list of projects to verify connection to ClearML
+        # Credentials are already configured from clearml.conf at startup
         projects = Task.get_projects()
         return {
             "status": "ok",
