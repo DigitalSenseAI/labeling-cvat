@@ -151,6 +151,11 @@ function FiltersModalComponent(): JSX.Element {
                     hideForCompare: true,
                     fieldSettings: { min: 0 },
                 },
+                confidence: {
+                    label: 'Confidence',
+                    type: 'number',
+                    fieldSettings: { min: 0, max: 1, step: 0.01 },
+                },
                 attr: {
                     label: 'Attributes',
                     type: '!struct',

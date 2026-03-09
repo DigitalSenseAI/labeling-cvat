@@ -16,7 +16,7 @@ import Select from 'antd/lib/select';
 import Icon from '@ant-design/icons';
 import {
     BorderOutlined,
-    LoadingOutlined, MoreOutlined, QuestionCircleOutlined,
+    LoadingOutlined, MoreOutlined, QuestionCircleOutlined, TagsOutlined,
 } from '@ant-design/icons/lib/icons';
 import { DurationIcon, FramesIcon } from 'icons';
 import {
@@ -25,6 +25,7 @@ import {
 import { useIsMounted } from 'utils/hooks';
 import UserSelector from 'components/task-page/user-selector';
 import CVATTooltip from 'components/common/cvat-tooltip';
+import Tooltip from 'antd/lib/tooltip';
 import { CombinedState } from 'reducers';
 import Collapse from 'antd/lib/collapse';
 import CVATTag, { TagType } from 'components/common/cvat-tag';
@@ -114,6 +115,19 @@ function JobItem(props: Props): JSX.Element {
     const deletes = useSelector((state: CombinedState) => state.jobs.activities.deletes);
     const deleted = job.id in deletes ? deletes[job.id] === true : false;
 
+    const [hasAnnotations, setHasAnnotations] = useState<boolean | null>(null);
+    const [annotationsLoading, setAnnotationsLoading] = useState(false);
+    const isMountedForAnnots = useIsMounted();
+
+    useEffect(() => {
+        // Use job state as indicator: if job is not 'new', it likely has annotations
+        // This is a lightweight heuristic that doesn't require loading all annotations
+        const hasAnnots = job.state !== JobState.NEW;
+
+        setHasAnnotations(hasAnnots);
+        setAnnotationsLoading(false);
+    }, [job.id, job.state]);
+
     const { stage } = job;
     const created = moment(job.createdDate);
     const updated = moment(job.updatedDate);
@@ -162,6 +176,17 @@ function JobItem(props: Props): JSX.Element {
                         <Row>
                             <Col>
                                 <Link to={`/tasks/${job.taskId}/jobs/${job.id}`}>{jobName}</Link>
+                                {!annotationsLoading && hasAnnotations !== null && (
+                                    <Tooltip title={hasAnnotations ? 'Has annotations' : 'No annotations'}>
+                                        <TagsOutlined
+                                            style={{
+                                                marginLeft: 8,
+                                                color: hasAnnotations ? '#52c41a' : '#d9d9d9',
+                                                fontSize: 14
+                                            }}
+                                        />
+                                    </Tooltip>
+                                )}
                             </Col>
                             {tag}
                             {job.type !== JobType.GROUND_TRUTH && (

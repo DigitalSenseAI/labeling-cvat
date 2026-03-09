@@ -31,6 +31,7 @@ from drf_spectacular.utils import (
     inline_serializer,
 )
 from rest_framework import serializers, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 import cvat.apps.dataset_manager as dm
@@ -270,6 +271,22 @@ class LambdaFunction:
             )
 
         return response
+
+    def get_available_checkpoints(self):
+        """
+        Get the list of available checkpoint files (.pth, .onnx, .ckpt)
+        from the function's nuclio container.
+
+        Returns:
+            list: List of checkpoint file names
+        """
+        try:
+            payload = {"list_checkpoints": True}
+            response = self.gateway.invoke(self, payload)
+            return response.get("checkpoints", [])
+        except Exception as e:
+            slogger.glob.error(f"Failed to get checkpoints for function {self.id}: {str(e)}", exc_info=True)
+            return []
 
     def invoke(
         self,
@@ -734,6 +751,17 @@ class DetectionResultConverter:
             for attr in anno.get("attributes", [])
             if attr["name"] in label["attributes"]
         ]
+
+        # Add confidence from model response if available
+        if "confidence" in anno and anno["confidence"] is not None:
+            confidence_attr_names = ["confidence", "score", "conf", "probability", "prob"]
+            for attr_name in confidence_attr_names:
+                if attr_name in label["attributes"]:
+                    attrs.append({
+                        "spec_id": label["attributes"][attr_name],
+                        "value": str(anno["confidence"])
+                    })
+                    break
 
         if anno["type"].lower() == "tag":
             return {
@@ -1203,6 +1231,25 @@ class FunctionViewSet(viewsets.ViewSet):
         self.check_object_permissions(request, func_id)
         gateway = LambdaGateway()
         return gateway.get(func_id).to_dict()
+
+    @extend_schema(
+        operation_id="lambda_list_checkpoints",
+        summary="Method returns available checkpoints for the function",
+        responses={
+            "200": OpenApiResponse(
+                response=OpenApiTypes.OBJECT,
+                description="List of available checkpoint files"
+            ),
+        },
+    )
+    @action(detail=True, methods=['GET'], url_path='checkpoints')
+    @return_response()
+    def checkpoints(self, request, func_id):
+        self.check_object_permissions(request, func_id)
+        gateway = LambdaGateway()
+        lambda_func = gateway.get(func_id)
+        checkpoints = lambda_func.get_available_checkpoints()
+        return {"checkpoints": checkpoints}
 
     @extend_schema(
         description=textwrap.dedent(

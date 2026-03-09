@@ -1,11 +1,12 @@
 {
+    "_comment": "Copy this file to clearml.conf and replace with your actual values",
     "api": {
-        "host": "http://192.168.0.220:8008",
-        "web_host": "http://192.168.0.220:8083",
-        "files_host": "http://192.168.0.220:8082",
-        "key": "DFDQOY53OMXJUU2VV0G9",
-        "secret": "EoXFbXkqjqcBQSFp85In1K4tWafmiPFUFnP4dvVLj9Qp1moaF3",
-        "cors_allowed_origins": ["http://192.168.0.225:9090"]
+        "host": "http://your-clearml-server:8008",
+        "web_host": "http://your-clearml-server:8083",
+        "files_host": "http://your-clearml-server:8082",
+        "key": "YOUR_CLEARML_API_KEY",
+        "secret": "YOUR_CLEARML_API_SECRET",
+        "cors_allowed_origins": ["http://your-frontend-host:port"]
     },
     "sdk": {
         "metrics": {

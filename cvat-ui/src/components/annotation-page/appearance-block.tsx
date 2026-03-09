@@ -27,6 +27,7 @@ import {
     changeShowBitmap as changeShowBitmapAction,
     changeShowProjections as changeShowProjectionsAction,
     changeOrientationVisibility as changeOrientationVisibilityAction,
+    changeShowConfidence as changeShowConfidenceAction,
 } from 'actions/settings-actions';
 
 interface StateToProps {
@@ -41,6 +42,7 @@ interface StateToProps {
     orientationVisibility: OrientationVisibility;
     workspace: Workspace;
     jobInstance: Job;
+    showConfidence: boolean;
 }
 
 interface DispatchToProps {
@@ -50,6 +52,7 @@ interface DispatchToProps {
     changeSelectedShapesOpacity(value: number): void;
     changeShapesOutlinedBorders(outlined: boolean, color: string): void;
     changeShowBitmap(event: CheckboxChangeEvent): void;
+    changeShowConfidence(event: CheckboxChangeEvent): void;
     changeShowProjections(event: CheckboxChangeEvent): void;
     changeOrientationVisibility(orientationVisibility: Partial<OrientationVisibility>): void;
 }
@@ -62,7 +65,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
             job: { instance: jobInstance },
         },
         settings: {
-            shapes: {
+            shapes: { showConfidence,
                 colorBy, opacity, selectedOpacity, outlined, outlineColor, showBitmap, showProjections,
                 orientationVisibility,
             },
@@ -79,6 +82,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
         showBitmap,
         showProjections,
         workspace,
+        showConfidence,
         orientationVisibility,
         jobInstance: jobInstance as Job,
     };
@@ -110,6 +114,9 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>): DispatchToProps {
         changeOrientationVisibility(orientationVisibility: Partial<OrientationVisibility>): void {
             dispatch(changeOrientationVisibilityAction(orientationVisibility));
         },
+        changeShowConfidence(event: CheckboxChangeEvent): void {
+            dispatch(changeShowConfidenceAction(event.target.checked));
+        },
     };
 }
 
@@ -127,6 +134,8 @@ function AppearanceBlock(props: Props): JSX.Element {
         showProjections,
         orientationVisibility,
         collapseAppearance,
+        showConfidence,
+        changeShowConfidence,
         changeShapesColorBy,
         changeShapesOpacity,
         changeSelectedShapesOpacity,
@@ -222,6 +231,15 @@ function AppearanceBlock(props: Props): JSX.Element {
                                 checked={showBitmap}
                             >
                                 Show bitmap
+                            </Checkbox>
+                        )}
+                        {is2D && (
+                            <Checkbox
+                                className='cvat-appearance-show-confidence-checkbox'
+                                onChange={changeShowConfidence}
+                                checked={showConfidence}
+                            >
+                                Show confidence
                             </Checkbox>
                         )}
                         {is2D && (

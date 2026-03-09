@@ -1,6 +1,7 @@
 import base64
 import io
 import json
+import os
 
 import yaml
 from model_handler import ModelHandler
@@ -17,19 +18,38 @@ def init_context(context):
     labels_spec = functionconfig['metadata']['annotations']['spec']
     labels = {item['id']: item['name'] for item in json.loads(labels_spec)}
 
-    # Hardcoded model configuration
-    model_path = "yolo_streetlight_640_v01.onnx"
-    conf_threshold = 0.25
-    iou_threshold = 0.6
-    input_size = 640
+    # Default model configuration - will be used if no JSON config exists
+    default_model = "yolo_streetlight_640_v03.onnx"
+    model_config = {
+        'model_path': default_model,
+        'input_size': 640,
+        'conf_threshold': 0.25,
+        'iou_threshold': 0.6
+    }
+
+    # Try to load configuration from JSON file if it exists
+    try:
+        loaded_config = ModelHandler.load_model_config(default_model)
+        model_config = loaded_config
+        context.logger.info(f"Loaded JSON configuration for {model_config.get('model_name', default_model)}")
+        context.logger.info(f"Input size: {model_config['input_size']}, "
+                          f"Conf threshold: {model_config['conf_threshold']}, "
+                          f"IoU threshold: {model_config['iou_threshold']}")
+    except FileNotFoundError:
+        context.logger.warning(f"No JSON config found for {default_model}, using default values")
+        context.logger.info(f"Default - Input size: {model_config['input_size']}, "
+                          f"Conf threshold: {model_config['conf_threshold']}, "
+                          f"IoU threshold: {model_config['iou_threshold']}")
+    except Exception as e:
+        context.logger.error(f"Error loading model config: {e}, using default values")
 
     # Initialize the model
     model = ModelHandler(
         labels=labels,
-        model_path=model_path,
-        input_size=input_size,
-        conf_threshold=conf_threshold,
-        iou_threshold=iou_threshold
+        model_path=model_config['model_path'],
+        input_size=model_config['input_size'],
+        conf_threshold=model_config['conf_threshold'],
+        iou_threshold=model_config['iou_threshold']
     )
     context.user_data.model = model
 
@@ -39,10 +59,39 @@ def init_context(context):
 def handler(context, event):
     context.logger.info("Run YOLOv11 ONNX detection model")
     data = event.body
+
+    # Parse JSON if data is a string
+    if isinstance(data, str):
+        data = json.loads(data)
+
+    context.logger.info(f"Received data: {data}")
+
+    # Check if this is a request to list available checkpoints
+    if data and data.get("list_checkpoints"):
+        context.logger.info("Listing available checkpoints")
+        checkpoint_files = [f for f in os.listdir('.') if f.endswith('.pth') or f.endswith('.onnx')]
+        context.logger.info(f"Found checkpoints: {checkpoint_files}")
+        return context.Response(body=json.dumps({"checkpoints": checkpoint_files}),
+            headers={},
+            content_type='application/json',
+            status_code=200
+        )
+
     buf = io.BytesIO(base64.b64decode(data["image"]))
 
     # Allow threshold override from request, default to model's configured threshold
     threshold = float(data.get("threshold", context.user_data.model.conf_threshold))
+    keyword = data.get("keyword")
+
+    # Log checkpoint info
+    if keyword:
+        context.logger.info(f"Checkpoint received from request: {keyword}")
+    else:
+        context.logger.info(f"No checkpoint provided, using current: {context.user_data.model.model_path}")
+
+    # Reload model if checkpoint is provided and different from current
+    if keyword:
+        context.user_data.model.load_network(model_path=keyword)
 
     image = Image.open(buf).convert("RGB")
 

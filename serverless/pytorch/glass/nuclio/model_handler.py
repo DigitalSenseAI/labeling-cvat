@@ -96,38 +96,51 @@ class ModelHandler:
 
         # --- Run inference ---
         with torch.no_grad():
-
             score, masks = self.model._predict(img_tensor)
 
-        if masks is not None:
-            for mask in masks:
-                pred_mask = (mask > threshold).astype(np.uint8)
-                resized_mask = self.resize_mask(pred_mask, image)
-
-        contours, _  = cv.findContours(resized_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-
         results = []
-        for contour in contours:
-            contour = np.flip(contour, axis=1)
-            if len(contour) < 3:
-                continue
+        if masks is not None:
+            # Process each mask separately
+            for mask_idx, mask in enumerate(masks):
+                # Binarize mask for contour detection
+                pred_mask = (mask > threshold).astype(np.uint8)
+                resized_binary_mask = self.resize_mask(pred_mask, image)
 
-            x_min = max(0, int(np.min(contour[:,:,0])))
-            x_max = max(0, int(np.max(contour[:,:,0])))
-            y_min = max(0, int(np.min(contour[:,:,1])))
-            y_max = max(0, int(np.max(contour[:,:,1])))
+                # Resize original mask (before thresholding) for confidence calculation
+                resized_original_mask = self.resize_mask(mask, image)
 
-            box = (x_min, y_min, x_max, y_max)
+                contours, _ = cv.findContours(resized_binary_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
-            cvat_mask = to_cvat_mask(box, resized_mask)
+                for contour in contours:
+                    contour = np.flip(contour, axis=1)
+                    if len(contour) < 3:
+                        continue
 
-            results.append({
-                "confidence": None,
-                "label": "anomaly",
-                "points": contour.ravel().tolist(),
-                "mask": cvat_mask,
-                "type": "mask",
-            })
+                    x_min = max(0, int(np.min(contour[:,:,0])))
+                    x_max = max(0, int(np.max(contour[:,:,0])))
+                    y_min = max(0, int(np.min(contour[:,:,1])))
+                    y_max = max(0, int(np.max(contour[:,:,1])))
+
+                    box = (x_min, y_min, x_max, y_max)
+
+                    # Calculate confidence as mean of mask values within the contour region
+                    # Use original mask values (before thresholding) only for pixels in the binary mask
+                    mask_region = resized_original_mask[y_min:y_max+1, x_min:x_max+1]
+                    binary_region = resized_binary_mask[y_min:y_max+1, x_min:x_max+1]
+
+                    # Calculate confidence only for pixels that are part of the mask (> 0)
+                    mask_pixels = mask_region[binary_region > 0]
+                    region_confidence = float(np.mean(mask_pixels)) if mask_pixels.size > 0 else 0.0
+
+                    cvat_mask = to_cvat_mask(box, resized_binary_mask)
+
+                    results.append({
+                        "confidence": region_confidence,
+                        "label": "anomaly",
+                        "points": contour.ravel().tolist(),
+                        "mask": cvat_mask,
+                        "type": "mask",
+                    })
 
         print('So far so good! Results obtained.')
 

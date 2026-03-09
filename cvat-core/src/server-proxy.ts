@@ -53,6 +53,9 @@ function configureStorage(storage: Storage, useDefaultLocation = false): Partial
             ...(storage.cloudStorageId ? {
                 cloud_storage_id: storage.cloudStorageId,
             } : {}),
+            ...(storage.serverPath ? {
+                server_path: storage.serverPath,
+            } : {}),
         } : {}),
     };
 }
@@ -1788,6 +1791,17 @@ async function cancelLambdaRequest(requestId) {
     }
 }
 
+async function getLambdaFunctionCheckpoints(functionId) {
+    const { backendAPI } = config;
+
+    try {
+        const response = await Axios.get(`${backendAPI}/lambda/functions/${functionId}/checkpoints`);
+        return response.data;
+    } catch (errorData) {
+        throw generateError(errorData);
+    }
+}
+
 async function installedApps() {
     const { backendAPI } = config;
     try {
@@ -2472,6 +2486,7 @@ export default Object.freeze({
         run: runLambdaRequest,
         call: callLambdaFunction,
         cancel: cancelLambdaRequest,
+        checkpoints: getLambdaFunctionCheckpoints,
     }),
 
     issues: Object.freeze({

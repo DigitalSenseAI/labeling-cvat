@@ -39,7 +39,7 @@ import {
 } from 'reducers';
 import isAbleToChangeFrame from 'utils/is-able-to-change-frame';
 import { KeyMap } from 'utils/mousetrap-react';
-import { switchToolsBlockerState } from 'actions/settings-actions';
+import { switchToolsBlockerState, changeFrameSpeed } from 'actions/settings-actions';
 import { writeLatestFrame } from 'utils/remember-latest-frame';
 import { finishDraw } from 'utils/drawing';
 import { toClipboard } from 'utils/to-clipboard';
@@ -97,6 +97,7 @@ interface DispatchToProps {
     restoreFrame(frame: number): void;
     switchNavigationBlocked(blocked: boolean): void;
     setNavigationType(navigationType: NavigationType): void;
+    onChangeFrameSpeed(speed: FrameSpeed): void;
 }
 
 function mapStateToProps(state: CombinedState): StateToProps {
@@ -220,6 +221,9 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
         setNavigationType(navigationType: NavigationType): void {
             dispatch(setNavigationTypeAction(navigationType));
         },
+        onChangeFrameSpeed(speed: FrameSpeed): void {
+            dispatch(changeFrameSpeed(speed));
+        },
     };
 }
 
@@ -315,8 +319,30 @@ class AnnotationTopBarContainer extends React.PureComponent<Props> {
 
                     const next = await jobInstance.frames
                         .search({ notDeleted: !showDeletedFrames }, nextCandidate, stopFrame);
-                    if (next !== null && isAbleToChangeFrame(next)) {
-                        onChangeFrame(next, currentPlaying);
+                    if (next !== null) {
+                        // Wait until navigation is not blocked (e.g., tracker inference completes)
+                        // Check up to 50 times with 100ms intervals (5 seconds max)
+                        let canChange = isAbleToChangeFrame(next);
+                        let attempts = 0;
+                        while (!canChange && currentPlaying && attempts < 50) {
+                            await new Promise((resolve) => {
+                                setTimeout(resolve, 100);
+                            });
+                            // Recheck if we can change frame and if play is still active
+                            canChange = isAbleToChangeFrame(next);
+                            const { playing: stillPlaying } = this.props;
+                            if (!stillPlaying) {
+                                return;
+                            }
+                            attempts += 1;
+                        }
+
+                        if (canChange) {
+                            onChangeFrame(next, currentPlaying);
+                        } else {
+                            // If still blocked after waiting, stop playing
+                            onSwitchPlay(false);
+                        }
                     } else {
                         onSwitchPlay(false);
                     }
@@ -630,6 +656,7 @@ class AnnotationTopBarContainer extends React.PureComponent<Props> {
             frameNumber,
             frameFilename,
             frameIsDeleted,
+            frameSpeed,
             undoAction,
             redoAction,
             workspace,
@@ -643,6 +670,7 @@ class AnnotationTopBarContainer extends React.PureComponent<Props> {
             navigationType,
             switchNavigationBlocked,
             setNavigationType,
+            onChangeFrameSpeed,
         } = this.props;
 
         return (
@@ -700,6 +728,8 @@ class AnnotationTopBarContainer extends React.PureComponent<Props> {
                 toolsBlockerState={toolsBlockerState}
                 jobInstance={jobInstance}
                 activeControl={activeControl}
+                frameSpeed={frameSpeed}
+                onChangeFrameSpeed={onChangeFrameSpeed}
             />
         );
     }

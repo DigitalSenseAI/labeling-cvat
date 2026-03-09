@@ -27,6 +27,7 @@ const defaultState: SettingsState = {
             y: false,
             z: false,
         },
+        showConfidence: false,
     },
     workspace: {
         autoSave: false,
@@ -50,7 +51,7 @@ const defaultState: SettingsState = {
     player: {
         canvasBackgroundColor: '#ffffff',
         frameStep: 10,
-        frameSpeed: FrameSpeed.Usual,
+        frameSpeed: FrameSpeed['x1'],
         resetZoom: false,
         rotateAll: false,
         smoothImage: true,
@@ -178,6 +179,15 @@ export default (state = defaultState, action: AnyAction): SettingsState => {
                         ...state.shapes.orientationVisibility,
                         ...action.payload.orientationVisibility,
                     },
+                },
+            };
+        }
+        case SettingsActionTypes.CHANGE_SHOW_CONFIDENCE: {
+            return {
+                ...state,
+                shapes: {
+                    ...state.shapes,
+                    showConfidence: action.payload.showConfidence,
                 },
             };
         }
